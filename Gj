@@ -1,0 +1,106 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local Window = Rayfield:CreateWindow({
+    Name = "Phakin Hub | Standalone Waypoint System",
+    LoadingTitle = "กำลังโหลดระบบเซฟจุด...",
+    KeySystem = false
+})
+
+local WaypointTab = Window:CreateTab("Save Points", 4483362458)
+WaypointTab:CreateSection("ระบบบันทึกและวาร์ปพิกัด")
+
+local Waypoints = {}       
+local WaypointNames = {}   
+local SelectedPoint = ""   
+local NewPointName = ""    
+
+-- 1. ช่องพิมพ์ชื่อจุด
+WaypointTab:CreateInput({
+    Name = "ตั้งชื่อจุดวาร์ป",
+    PlaceholderText = "เช่น จุดฟาร์ม / จุดแอบ",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        NewPointName = Text
+    end,
+})
+
+-- 2. Dropdown เลือกจุด
+local PointDropdown = WaypointTab:CreateDropdown({
+    Name = "เลือกจุดวาร์ป",
+    Options = {"ยังไม่มีจุดที่บันทึก"},
+    CurrentOption = "",
+    Callback = function(Option)
+        SelectedPoint = Option
+    end,
+})
+
+-- 3. ปุ่มบันทึกพิกัด
+WaypointTab:CreateButton({
+    Name = "📌 บันทึกพิกัดปัจจุบัน",
+    Callback = function()
+        pcall(function()
+            local char = LocalPlayer.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            
+            if hrp then
+                local pointName = (NewPointName ~= "") and NewPointName or ("จุดที่ " .. tostring(#WaypointNames + 1))
+                
+                if not Waypoints[pointName] then
+                    table.insert(WaypointNames, pointName)
+                end
+                
+                Waypoints[pointName] = hrp.CFrame
+                PointDropdown:Refresh(WaypointNames, true)
+                
+                Rayfield:Notify({Title = "สำเร็จ", Content = "บันทึกจุด '" .. pointName .. "' เรียบร้อย!", Duration = 2})
+            else
+                Rayfield:Notify({Title = "Error", Content = "ไม่พบตัวละครของคุณ", Duration = 2})
+            end
+        end)
+    end,
+})
+
+-- 4. ปุ่มวาร์ป
+WaypointTab:CreateButton({
+    Name = "🚀 วาร์ปไปจุดที่เลือก",
+    Callback = function()
+        pcall(function()
+            local char = LocalPlayer.Character
+            if char and Waypoints[SelectedPoint] then
+                char:PivotTo(Waypoints[SelectedPoint])
+                Rayfield:Notify({Title = "สำเร็จ", Content = "วาร์ปไป '" .. SelectedPoint .. "' แล้ว", Duration = 2})
+            else
+                Rayfield:Notify({Title = "Error", Content = "กรุณาเลือกจุดวาร์ปก่อน", Duration = 2})
+            end
+        end)
+    end,
+})
+
+-- 5. ปุ่มลบจุด
+WaypointTab:CreateButton({
+    Name = "🗑️ ลบจุดที่เลือก",
+    Callback = function()
+        pcall(function()
+            if SelectedPoint ~= "" and Waypoints[SelectedPoint] then
+                Waypoints[SelectedPoint] = nil
+                
+                for i, name in ipairs(WaypointNames) do
+                    if name == SelectedPoint then
+                        table.remove(WaypointNames, i)
+                        break
+                    end
+                end
+                
+                local refreshList = #WaypointNames > 0 and WaypointNames or {"ยังไม่มีจุดที่บันทึก"}
+                PointDropdown:Refresh(refreshList, true)
+                
+                Rayfield:Notify({Title = "สำเร็จ", Content = "ลบจุดเรียบร้อยแล้ว", Duration = 2})
+                SelectedPoint = ""
+            end
+        end)
+    end,
+})
+
+Rayfield:Notify({Title = "Ready", Content = "ระบบเซฟจุดพร้อมใช้งาน!", Duration = 3})
