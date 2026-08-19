@@ -1,0 +1,92 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Teleport System | Rayfield",
+   LoadingTitle = "กำลังโหลดสคริปต์...",
+   LoadingSubtitle = "by Assistant",
+   ConfigurationSaving = {
+      Enabled = false,
+   },
+   KeySystem = false
+})
+
+local Tab = Window:CreateTab("จุดวาร์ป (Teleport)", 4483362458) -- ไอคอนสามารถเปลี่ยน ID ได้
+
+local SavedCFrame = nil
+
+**ระบบจัดการจุดวาร์ป**
+
+local StatusParagraph = Tab:CreateParagraph({
+    Title = "สถานะจุดวาร์ป", 
+    Content = "ยังไม่ได้บันทึกจุดวาร์ป"
+})
+
+Tab:CreateButton({
+   Name = "บันทึกจุดปัจจุบัน (Save Location)",
+   Callback = function()
+       local player = game.Players.LocalPlayer
+       if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+           SavedCFrame = player.Character.HumanoidRootPart.CFrame
+           
+           -- คำนวณพิกัดเพื่อแสดงผล
+           local pos = SavedCFrame.Position
+           local posX = math.floor(pos.X)
+           local posY = math.floor(pos.Y)
+           local posZ = math.floor(pos.Z)
+           
+           StatusParagraph:Set({
+               Title = "สถานะจุดวาร์ป", 
+               Content = "บันทึกแล้วที่พิกัด: X: " .. posX .. ", Y: " .. posY .. ", Z: " .. posZ
+           })
+           
+           Rayfield:Notify({
+               Title = "สำเร็จ!",
+               Content = "บันทึกจุดวาร์ปเรียบร้อยแล้ว",
+               Duration = 3,
+               Image = 4483334269,
+           })
+       end
+   end,
+})
+
+Tab:CreateButton({
+   Name = "วาร์ปไปจุดที่บันทึก (Teleport)",
+   Callback = function()
+       local player = game.Players.LocalPlayer
+       if SavedCFrame then
+           if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+               player.Character.HumanoidRootPart.CFrame = SavedCFrame
+               Rayfield:Notify({
+                   Title = "วาร์ปสำเร็จ!",
+                   Content = "ย้ายไปยังจุดที่บันทึกแล้ว",
+                   Duration = 2,
+                   Image = 4483334269,
+               })
+           end
+       else
+           Rayfield:Notify({
+               Title = "เเจ้งเตือน",
+               Content = "คุณยังไม่ได้บันทึกจุดวาร์ป!",
+               Duration = 3,
+               Image = 4483334269,
+           })
+       end
+   end,
+})
+
+Tab:CreateButton({
+   Name = "ลบจุดวาร์ป (Reset Saved Location)",
+   Callback = function()
+       SavedCFrame = nil
+       StatusParagraph:Set({
+           Title = "สถานะจุดวาร์ป", 
+           Content = "ยังไม่ได้บันทึกจุดวาร์ป"
+       })
+       Rayfield:Notify({
+           Title = "รีเซ็ตสำเร็จ",
+           Content = "ลบข้อมูลจุดวาร์ปแล้ว",
+           Duration = 2,
+           Image = 4483334269,
+       })
+   end,
+})
